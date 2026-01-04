@@ -1,4 +1,4 @@
-import { ApiTemplateType } from "../../Schema/ApiSchema";
+import { ApiTemplateType } from "../../Schema/ApiSchema.js";
 
 export const CrudApiTemplate: ApiTemplateType = {
     name: "crud-api-template",

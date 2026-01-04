@@ -1,7 +1,7 @@
 import { Request, Response } from "express"
-import { prisma } from ".."
-import { DatabaseConfigurationSchema } from "../Schema/DatabaseConfig"
-import { DatabaseCollectionSchema } from "../Schema/DatabaseCollection"
+import { prisma } from "../index.js"
+import { DatabaseConfigurationSchema } from "../Schema/DatabaseConfig.js"
+import { DatabaseCollectionSchema } from "../Schema/DatabaseCollection.js"
 
 export const CreateCollection = async(req:Request,res:Response)=>{
     try{

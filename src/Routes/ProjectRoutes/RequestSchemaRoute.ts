@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { ProjectMiddleware } from "../../Middlewares/projectMiddleware";
-import { GetOneRequestSchema, GetRequestSchemas, UpdateRequestSchema } from "../../Controllers/RequestSchemaController";
+import { ProjectMiddleware } from "../../Middlewares/projectMiddleware.js";
+import { GetOneRequestSchema, GetRequestSchemas, UpdateRequestSchema } from "../../Controllers/RequestSchemaController.js";
 
 
 

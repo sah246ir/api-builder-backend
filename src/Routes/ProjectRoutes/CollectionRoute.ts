@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { ProjectMiddleware } from "../../Middlewares/projectMiddleware";
-import { CreateCollection, DeleteCollection, GetCollections, GetOneCollection, UpdateCollection } from "../../Controllers/CollectionController";
+import { ProjectMiddleware } from "../../Middlewares/projectMiddleware.js";
+import { CreateCollection, DeleteCollection, GetCollections, GetOneCollection, UpdateCollection } from "../../Controllers/CollectionController.js";
 
 
 

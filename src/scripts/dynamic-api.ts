@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { DatabaseCollectionType } from "../Schema/DatabaseCollection";
+import { DatabaseCollectionType } from "../Schema/DatabaseCollection.js";
 
 export const prisma = new PrismaClient()
 

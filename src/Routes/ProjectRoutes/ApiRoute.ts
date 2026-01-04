@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { ProjectMiddleware } from "../../Middlewares/projectMiddleware";
-import { CreateApiFromTemplate, GetApis, GetApiTemplates, GetOneApi, GetOneApiTemplate } from "../../Controllers/ApiController";
+import { ProjectMiddleware } from "../../Middlewares/projectMiddleware.js";
+import { CreateApiFromTemplate, GetApis, GetApiTemplates, GetOneApi, GetOneApiTemplate } from "../../Controllers/ApiController.js";
 
 
 

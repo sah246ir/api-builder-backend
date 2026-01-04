@@ -1,5 +1,6 @@
 {
   "name": "typescript-nodejs",
+  "type": "module",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -14,7 +15,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@mhoc/axios-digest-auth": "^0.8.0",
+    "@kubernetes/client-node": "^1.4.0",
+    "@lukesthl/ts-axios-digest-auth": "^1.0.5",
     "@prisma/client": "^5.22.0",
     "@types/axios": "^0.14.4",
     "@types/bcrypt": "^5.0.2",

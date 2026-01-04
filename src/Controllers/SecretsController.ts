@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
-import { HASHING_SALT, prisma } from ".."
-import { SecretSchema } from "../Schema/Secret"
+import { HASHING_SALT, prisma } from "../index.js"
+import { SecretSchema } from "../Schema/Secret.js"
 import { hash } from "bcrypt"
 
 export const CreateSecret = async(req:Request,res:Response)=>{

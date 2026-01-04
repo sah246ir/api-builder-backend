@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { ProjectMiddleware } from "../../Middlewares/projectMiddleware";
+import { ProjectMiddleware } from "../../Middlewares/projectMiddleware.js";
 
 
 

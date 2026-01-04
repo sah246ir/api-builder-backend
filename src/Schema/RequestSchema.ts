@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { FieldSchema } from "./DatabaseCollection";
+import { FieldSchema } from "./DatabaseCollection.js";
 
  
   

@@ -1,7 +1,8 @@
 import { Request, Response } from "express"
-import { prisma } from ".."
-import { DatabaseConfigurationSchema } from "../Schema/DatabaseConfig"
-import AxiosDigestAuth from "@mhoc/axios-digest-auth"
+import { prisma } from "../index.js"
+import { DatabaseConfigurationSchema } from "../Schema/DatabaseConfig.js"
+import { AxiosDigestAuth } from '@lukesthl/ts-axios-digest-auth';
+
 import { AxiosError } from "axios"
 
 export const UpdateDatabaseConfiguration = async(req:Request,res:Response)=>{
@@ -15,7 +16,7 @@ export const UpdateDatabaseConfiguration = async(req:Request,res:Response)=>{
         const digestAuth = new AxiosDigestAuth({
             username: parsedData.data.MONGODB_ATLAS_PUBLIC_KEY,
             password: parsedData.data.MONGODB_ATLAS_PRIVATE_KEY,
-          });
+          })
           
         const url = `https://cloud.mongodb.com/api/atlas/v1.0/groups/${parsedData.data.MONGODB_ATLAS_PROJECT_ID}/clusters/${parsedData.data.MONGODB_ATLAS_CLUSTER}?pretty=true`;
         try{

@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { ProjectMiddleware } from "../../Middlewares/projectMiddleware";
-import { GetActiveDatabase, GetDatabaseConfiguration, UpdateDatabaseConfiguration } from "../../Controllers/DatabaseController";
+import { ProjectMiddleware } from "../../Middlewares/projectMiddleware.js";
+import { GetActiveDatabase, GetDatabaseConfiguration, UpdateDatabaseConfiguration } from "../../Controllers/DatabaseController.js";
 
 
 

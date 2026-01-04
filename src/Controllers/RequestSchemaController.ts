@@ -1,6 +1,6 @@
-import { prisma } from ".."
+import { prisma } from "../index.js"
 import { Request, Response } from "express"
-import {UpdateRequestSchema as urs} from "../Schema/RequestSchema"
+import {UpdateRequestSchema as urs} from "../Schema/RequestSchema.js"
 export const UpdateRequestSchema = async(req:Request,res:Response)=>{
     try{ 
         const id = req.params.id as string

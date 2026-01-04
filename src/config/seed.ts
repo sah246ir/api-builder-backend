@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client"
-import { CrudApiTemplate } from "./templates/CrudApiTemplate"
+import { CrudApiTemplate } from "./templates/CrudApiTemplate.js"
 
 const prisma = new PrismaClient()
 
@@ -15,6 +15,7 @@ export const seed = async () => {
                 where: {
                 },
                 select: {
+                    endpoint:true,
                     ApiEndpoint: {
                         select:{
                             RequestBody:{

@@ -1,5 +1,5 @@
 import z from "zod";
-import { FieldSchema, TypeEnum } from "./DatabaseCollection";
+import { FieldSchema, TypeEnum } from "./DatabaseCollection.js";
 
 
 

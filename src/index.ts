@@ -3,15 +3,17 @@ import express,{Request,Response,NextFunction} from "express";
 import cors from "cors";
 import bodyParser from 'body-parser';
 import cookieParser from "cookie-parser";
-import { corsHeaders } from "./Middlewares/cors-headers"; 
+import { corsHeaders } from "./Middlewares/cors-headers.js"; 
 import { config } from "dotenv";
-import { SecretsRouter } from "./Routes/ProjectRoutes/secretsRoute";
+import { SecretsRouter } from "./Routes/ProjectRoutes/secretsRoute.js";
 import { PrismaClient } from "@prisma/client";
-import { DatabaseRouter } from "./Routes/ProjectRoutes/DataseRoute";
-import { ProjectRouter } from "./Routes/ProjectRoutes/ProjectRoute";
-import { CollectionRouter } from "./Routes/ProjectRoutes/CollectionRoute";
-import { ApiRouter } from "./Routes/ProjectRoutes/ApiRoute";
-import { RequestSchemaRouter } from "./Routes/ProjectRoutes/RequestSchemaRoute";
+import { DatabaseRouter } from "./Routes/ProjectRoutes/DataseRoute.js";
+import { ProjectRouter } from "./Routes/ProjectRoutes/ProjectRoute.js";
+import { CollectionRouter } from "./Routes/ProjectRoutes/CollectionRoute.js";
+import { ApiRouter } from "./Routes/ProjectRoutes/ApiRoute.js";
+import { RequestSchemaRouter } from "./Routes/ProjectRoutes/RequestSchemaRoute.js";
+import * as kubeclient from '@kubernetes/client-node';
+import { K8sService } from "./services/k8.js";
  
 
 declare global {
@@ -19,6 +21,8 @@ declare global {
         interface Request { 
             projectId?: string; 
             organization?: string; 
+            organizationName?: string; 
+            namespace?: string; 
         }
     }
 }
@@ -30,6 +34,12 @@ export const prisma = new PrismaClient()
 export const clients = (process.env.CLIENTS || "").split(",")
 export const HASHING_SALT = (process.env.HASHING_SALT || "")
 
+// initialize kubernetes client
+const k8s = new kubeclient.KubeConfig()
+k8s.loadFromDefault()
+export const k8sClient = k8s.makeApiClient(kubeclient.AppsV1Api)
+export const k8sCore = k8s.makeApiClient(kubeclient.CoreV1Api)
+export const k8sService = new K8sService(k8sClient, k8sCore)
 app.use(cors({
     origin: clients,// array of client urls
     credentials: true

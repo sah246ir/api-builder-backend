@@ -1,5 +1,5 @@
 import { NextFunction,Response,Request } from "express";
-import { clients, prisma } from "..";
+import { clients, prisma } from "../index.js";
 
 export async function ProjectMiddleware(req:Request, res:Response, next:NextFunction){
     const organization = req.headers['x-organization'] as string | undefined
@@ -14,6 +14,13 @@ export async function ProjectMiddleware(req:Request, res:Response, next:NextFunc
         where:{
             id:projectid,
             organization_id:organization
+        },
+        include:{
+            Organization:{
+                select:{
+                    name:true
+                }
+            }
         }
     })
 
@@ -25,5 +32,7 @@ export async function ProjectMiddleware(req:Request, res:Response, next:NextFunc
 
     req.projectId = project.id
     req.organization = project.organization_id
+    req.organizationName = project.Organization.name
+    req.namespace = `${project.organization_id}-${project.Organization.name.toLowerCase().trim().replace(/ /g, '-')}`
     next();
 }

@@ -1,8 +1,8 @@
 import { Request, Response } from "express"
-import { prisma } from ".."
+import { prisma } from "../index.js"
 import { Prisma } from "@prisma/client"
-import { ApiTemplateSchema, CreateApiFromTemplateSchema } from "../Schema/ApiSchema"
-import { CollectionSchema } from "../Schema/DatabaseCollection"
+import { ApiTemplateSchema, CreateApiFromTemplateSchema } from "../Schema/ApiSchema.js"
+import { CollectionSchema } from "../Schema/DatabaseCollection.js"
 
 export const GetApiTemplates = async(req:Request,res:Response)=>{
     try{ 
