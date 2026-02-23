@@ -3,11 +3,13 @@ export class K8sService {
     Client: {
         k8sClient: kubeclient.AppsV1Api
         k8sCore: kubeclient.CoreV1Api
+        k8sNetworking: kubeclient.NetworkingV1Api
     }
-    constructor(k8sClient: kubeclient.AppsV1Api, k8sCore: kubeclient.CoreV1Api) {
+    constructor(k8sClient: kubeclient.AppsV1Api, k8sCore: kubeclient.CoreV1Api, k8sNetworking: kubeclient.NetworkingV1Api) {
         this.Client = {
             k8sClient,
-            k8sCore
+            k8sCore,
+            k8sNetworking
         }
     }
 

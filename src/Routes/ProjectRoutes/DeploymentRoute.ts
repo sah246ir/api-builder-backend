@@ -4,8 +4,8 @@ import { UpdateDatabaseConfiguration } from "../../Controllers/DatabaseControlle
 
 
 
-export const DatabaseRouter = Router()
-DatabaseRouter.use(ProjectMiddleware)
+export const DeploymentRouter = Router()
+DeploymentRouter.use(ProjectMiddleware)
 
 
-DatabaseRouter.put("/deploy/:apiId",UpdateDatabaseConfiguration)
+DeploymentRouter.put("/deploy/:apiId",UpdateDatabaseConfiguration)

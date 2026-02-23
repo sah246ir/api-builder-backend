@@ -5,7 +5,7 @@ import { API_DEPLOYMENT_SPEC, k8S_DEPLOYMENT } from "../constants.js"
 export const DeployApi = async (req: Request, res: Response) => {
     try {
         const apiId = req.params.apiId as string
-        let namespace = await k8sService.getNamespace("test-user")
+        let namespace = await k8sService.getNamespace(req.namespace as string)
         if (!namespace) {
             namespace = await k8sService.Client.k8sCore.createNamespace({
                 body: {
@@ -87,6 +87,56 @@ export const DeployApi = async (req: Request, res: Response) => {
                         }
                     ]
                 })
+            })
+
+            await k8sService.Client.k8sCore.createNamespacedService({
+                namespace: req.namespace as string,
+                body: {
+                    metadata: {
+                        name: `service-${key}`,
+                    },
+                    spec:{
+                        type:"NodePort",
+                        ports:[
+                            {
+                                port:80,
+                                targetPort:5000,
+                            }
+                        ]
+                    }
+                }
+            })
+
+            await k8sService.Client.k8sNetworking.createNamespacedIngress({
+                namespace:req.namespace as string,
+                body: {
+                    metadata: {
+                        name: `ingress-${key}`
+                    },
+                    spec: {
+                        rules: [
+                            {
+                                host: `${apiSpec.name.toLowerCase().trim().replace(/ /g, '-')}.local`,
+                                http:{
+                                    paths:[
+                                        {
+                                            path:"/",
+                                            pathType:"Prefix",
+                                            backend:{
+                                                service:{
+                                                    name:`service-${key}`,
+                                                    port:{
+                                                        number:80
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                }
             })
         }
         return res.json({
