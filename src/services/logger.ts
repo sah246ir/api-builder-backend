@@ -1,3 +1,5 @@
+import { LogSource, PrismaClient } from "@prisma/client";
+
 export type LogLevel = "INFO" | "WARN" | "ERROR";
 
 export interface LogEvent {
@@ -30,7 +32,7 @@ export class LogManager implements Logger {
 }
 
 export class DBLogHandler implements LogHandler {
-    constructor(private prisma: any) { }
+    constructor(private prisma: PrismaClient) { }
 
     async handle(event: LogEvent): Promise<void> {
         await this.prisma.deploymentLog.create({
@@ -38,6 +40,7 @@ export class DBLogHandler implements LogHandler {
                 deployment_id: event.deploymentId,
                 level: event.level,
                 message: event.message,
+                source: event.source as LogSource,
                 created_at: event.timestamp,
             },
         });
