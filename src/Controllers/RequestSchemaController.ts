@@ -1,4 +1,4 @@
-import { prisma } from "../index.js"
+import { prisma } from "../config/config.js"
 import { Request, Response } from "express"
 import {UpdateRequestSchema as urs} from "../Schema/RequestSchema.js"
 export const UpdateRequestSchema = async(req:Request,res:Response)=>{
@@ -73,3 +73,19 @@ export const GetOneRequestSchema = async(req:Request,res:Response)=>{
         })
     }
 }
+
+export const DeleteRequestSchema = async(req:Request,res:Response)=>{
+    try{ 
+        const id = req.params.id as string
+        const data = await prisma.requestModel.delete({
+            where:{id:parseInt(id)}
+        })
+        return res.json({
+            message:"Request schema deleted successfully"
+        })
+    }catch(e){
+        return res.status(400).json({
+            message:"error"
+        })
+    }
+}   

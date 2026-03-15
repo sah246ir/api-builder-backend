@@ -1,5 +1,5 @@
 import { Request, Response } from "express"
-import { HASHING_SALT, prisma } from "../index.js"
+import { HASHING_SALT, prisma } from "../config/config.js"
 import { SecretSchema } from "../Schema/Secret.js"
 import { hash } from "bcrypt"
 

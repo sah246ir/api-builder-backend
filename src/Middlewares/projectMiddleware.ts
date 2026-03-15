@@ -1,5 +1,5 @@
 import { NextFunction,Response,Request } from "express";
-import { clients, prisma } from "../index.js";
+import { clients, prisma } from "../config/config.js";
 
 export async function ProjectMiddleware(req:Request, res:Response, next:NextFunction){
     const organization = req.headers['x-organization'] as string | undefined

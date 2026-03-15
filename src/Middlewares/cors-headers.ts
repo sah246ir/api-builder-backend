@@ -1,5 +1,5 @@
 import { NextFunction,Response,Request } from "express";
-import { clients } from "../index.js";
+import { clients } from "../config/config.js";
 
 export function corsHeaders(req:Request, res:Response, next:NextFunction){
     res.header('Access-Control-Allow-Origin', ...clients);

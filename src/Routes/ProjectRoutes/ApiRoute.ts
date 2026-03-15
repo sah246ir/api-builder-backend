@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { ProjectMiddleware } from "../../Middlewares/projectMiddleware.js";
-import { CreateApiFromTemplate, GetApis, GetApiTemplates, GetOneApi, GetOneApiTemplate } from "../../Controllers/ApiController.js";
+import { CreateApiFromTemplate, DeleteApi, GetApis, GetApiTemplates, GetOneApi, GetOneApiTemplate } from "../../Controllers/ApiController.js";
 
 
 
@@ -13,3 +13,4 @@ ApiRouter.get("/templates",GetApiTemplates)
 ApiRouter.get("/templates/:templateId",GetOneApiTemplate)
 ApiRouter.post("/create/templates/:templateId",CreateApiFromTemplate)
 ApiRouter.get("/:id",GetOneApi)
+ApiRouter.delete("/:id",DeleteApi)

@@ -1,5 +1,5 @@
 import { Request, Response } from "express"
-import { prisma } from "../index.js"
+import { prisma } from "../config/config.js"
 import { DatabaseConfigurationSchema } from "../Schema/DatabaseConfig.js"
 import { AxiosDigestAuth } from '@lukesthl/ts-axios-digest-auth';
 

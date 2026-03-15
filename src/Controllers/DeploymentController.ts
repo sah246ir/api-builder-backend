@@ -1,11 +1,12 @@
-import { k8sClient, k8sCore, k8sService, prisma } from "../index.js"
+import { k8sService, prisma } from "../config/config.js"
 import { Request, Response } from "express"
 import { API_DEPLOYMENT_SPEC, k8S_DEPLOYMENT } from "../constants.js"
+import { generateKey } from "../utils.js"
 
 export const DeployApi = async (req: Request, res: Response) => {
+    let namespace = await k8sService.getNamespace(req.namespace as string)
     try {
         const apiId = req.params.apiId as string
-        let namespace = await k8sService.getNamespace(req.namespace as string)
         if (!namespace) {
             namespace = await k8sService.Client.k8sCore.createNamespace({
                 body: {
@@ -26,50 +27,43 @@ export const DeployApi = async (req: Request, res: Response) => {
                 message: "Api not found"
             })
         }
-        const key = `${req.projectId}-${apiSpec.name.toLowerCase().trim().replace(/ /g, '-')}`
-        const deployment = await k8sService.getDeployment(req.namespace as string, req.projectId as string, apiSpec.name)
+        const key = generateKey(req.projectId as string,apiSpec.name)
+        const deployment = await k8sService.getDeployment(req.namespace as string,`deployment-${key}`)
         if (!deployment) {
-            const configMap = await k8sService.Client.k8sCore.createNamespacedConfigMap({
-                namespace: req.namespace as string,
-                body: {
-                    metadata: {
-                        name: `config-map-${key}`, 
-                    },
-                    data:{
-                        "api.json": JSON.stringify(apiSpec)
-                    }
-                },
-            })
+            const appLabel = apiSpec.name.toLowerCase().trim().replace(/ /g, '-')
+            
+            await k8sService.createConfigMap(
+                req.namespace as string,
+                `config-map-${key}`,
+                { "api.json": JSON.stringify(apiSpec) }
+            )
+
             const dbSecrets = await prisma.secret.findFirst({
                 where:{
                     project_id:req.projectId as string,
-                    type:"database",
                     key:"MONGO_URI"
                 },
                 select:{
                     value:true
                 }
             })
-            const secret = await k8sService.Client.k8sCore.createNamespacedSecret({
-                namespace: req.namespace as string,
-                body:{
-                    data:{
-                        PORT:"5000",
-                        SPEC_PATH:"/api.json",
-                        MONGO_URI:dbSecrets?.value || ""
-                    },
-                    metadata:{
-                        name:`secret-${key}`
-                    }
+
+            await k8sService.createSecret(
+                req.namespace as string,
+                `secret-${key}`,
+                {
+                    PORT: "5000",
+                    SPEC_PATH: `/${apiSpec.id}/api.json`,
+                    MONGO_URI: dbSecrets?.value || ""
                 }
-            })
+            )
 
             await k8sService.Client.k8sClient.createNamespacedDeployment({
                 namespace: req.namespace as string,
                 body: k8S_DEPLOYMENT({
                     namespace: req.namespace as string,
                     name: `deployment-${key}`,
-                    label: apiSpec.name.toLowerCase().trim().replace(/ /g, '-'),
+                    label: appLabel,
                     secretRef: `secret-${key}`,
                     env: [],
                     volumeMounts: [
@@ -89,60 +83,34 @@ export const DeployApi = async (req: Request, res: Response) => {
                 })
             })
 
-            await k8sService.Client.k8sCore.createNamespacedService({
-                namespace: req.namespace as string,
-                body: {
-                    metadata: {
-                        name: `service-${key}`,
-                    },
-                    spec:{
-                        type:"NodePort",
-                        ports:[
-                            {
-                                port:80,
-                                targetPort:5000,
-                            }
-                        ]
-                    }
-                }
-            })
+            await k8sService.createService(
+                req.namespace as string,
+                `service-${key}`,
+                { app: appLabel },
+                80,
+                5000
+            )
 
-            await k8sService.Client.k8sNetworking.createNamespacedIngress({
-                namespace:req.namespace as string,
-                body: {
-                    metadata: {
-                        name: `ingress-${key}`
-                    },
-                    spec: {
-                        rules: [
-                            {
-                                host: `${apiSpec.name.toLowerCase().trim().replace(/ /g, '-')}.local`,
-                                http:{
-                                    paths:[
-                                        {
-                                            path:"/",
-                                            pathType:"Prefix",
-                                            backend:{
-                                                service:{
-                                                    name:`service-${key}`,
-                                                    port:{
-                                                        number:80
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    ]
-                                }
-                            }
-                        ]
-                    }
-                }
-            })
+            await k8sService.createIngress(
+                req.namespace as string,
+                `ingress-${key}`,
+                `${appLabel}.local`,
+                `service-${key}`,
+                80
+            )
+        }else{
+            await k8sService.restartDeployment(req.namespace as string,deployment.metadata?.name as string)
         }
         return res.json({
-            message: "Namespace found",
+            message: "Deployment initiated successfully",
         })
     } catch (e) {
+        console.log(e)
+        if(namespace){
+            await k8sService.Client.k8sCore.deleteNamespace({
+                name:req.namespace as string,
+            })
+        }
         return res.status(400).json({
             message: (e as any).message || "Unknown error occured"
         })

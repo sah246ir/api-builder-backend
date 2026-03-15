@@ -136,6 +136,8 @@ model Api {
   ApiTemplate ApiTemplate? @relation(fields: [template], references: [name])
 
   ApiEndpoint ApiEndpoint[]
+  Deployment Deployment[]
+  @@unique([endpoint, project_id])
 }
 
 model ApiEndpoint {
@@ -149,12 +151,10 @@ model ApiEndpoint {
   definition      Json
   method          HttpMethodType
 
-  API     Api          @relation(fields: [api_id], references: [id])
-  Project         Project      @relation(fields: [project_id], references: [id])
+  API     Api          @relation(fields: [api_id], references: [id], onDelete: Cascade)
+  Project         Project      @relation(fields: [project_id], references: [id], onDelete: Cascade)
   RequestBody RequestModel? @relation(name: "ApiEndpointToRequestBody", fields: [request_body_id], references: [id])
   QueryParams RequestModel? @relation(name: "ApiEndpointToQueryParams", fields: [query_params_id], references: [id])
-
-  @@unique([endpoint, project_id, method])
 }
 
 model ApiTemplate {
@@ -167,9 +167,55 @@ model ApiTemplate {
   @@unique([name])
 }
 
+model Deployment {
+  id Int @id @default(autoincrement())
+  api_id Int
+  version Int
+  namespace String
+  deployment_name String
+  status DeploymentStatus
+  initiated_at DateTime @default(now())
+  completed_at DateTime?
+  failure_reason String?
+
+  api Api @relation(fields: [api_id], references: [id])
+  DeploymentLog DeploymentLog[]
+}
+model DeploymentLog {
+  id Int @id @default(autoincrement())
+
+  deployment_id Int
+  level LogLevel
+  message String
+
+  source LogSource
+  created_at DateTime @default(now())
+
+  deployment Deployment @relation(fields: [deployment_id], references: [id])
+
+  @@index([deployment_id])
+}
+
 model Database {
   project_id String @id
   name       String
+}
+enum LogSource {
+  SYSTEM
+  DEPLOYMENT
+  POD
+  WORKER
+}
+enum LogLevel {
+  INFO
+  WARN
+  ERROR
+}
+enum DeploymentStatus {
+  pending
+  deploying
+  deployed
+  failed
 }
 
 enum RequestModelType {

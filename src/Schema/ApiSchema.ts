@@ -37,6 +37,7 @@ export type ApiTemplateType = z.infer<typeof ApiTemplateSchema>
 export const CreateApiFromTemplateSchema = z.object({
     collection:z.string(),
     endpoint:z.string(),
+    name:z.string(),
 })
 
 export type CreateApiFromTemplateType = z.infer<typeof CreateApiFromTemplateSchema>
