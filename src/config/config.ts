@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { K8sService } from "../services/k8.js";
-import { CLIENTS, HASHING_SALT } from "./env.js";
+import { CLIENTS } from "./env.js";
 import { DBLogHandler, LogManager } from "../services/logger.js";
 
 export const prisma = new PrismaClient();

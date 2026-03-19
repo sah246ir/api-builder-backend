@@ -61,7 +61,7 @@ export const DeployApi = async (req: Request, res: Response) => {
             logger.log({
                 deploymentId: DbDeployment.id,
                 level: "INFO",
-                message: `Namespace (${namespace}) found for your project`,
+                message: `Namespace (${namespace.metadata?.name}) found for your project`,
                 source: "DEPLOYMENT",
                 timestamp: new Date()
             })
@@ -180,20 +180,100 @@ export const DeployApi = async (req: Request, res: Response) => {
                 source: "DEPLOYMENT",
                 timestamp: new Date()
             })
+            await k8sService.updateConfigMap(
+                req.namespace as string, 
+                `config-map-${key}`, 
+                [{ 
+                op: "add",
+                path: "/data/api.json",
+                value: JSON.stringify(apiSpec)
+             }]
+            )
             await k8sService.restartDeployment(req.namespace as string, deployment.metadata?.name as string)
+            logger.log({
+                deploymentId: DbDeployment.id,
+                level: "INFO",
+                message: `Deployment restarted successfully.`,
+                source: "DEPLOYMENT",
+                timestamp: new Date()
+            })
         }
+        await prisma.deployment.update({
+            where: {
+                id: DbDeployment.id
+            },
+            data: {
+                status: DeploymentStatus.deployed,
+                completed_at: new Date()
+            }
+        })
         return res.json({
             message: "Deployment initiated successfully",
         })
-    } catch (e) {
+    } catch (e) { 
         console.log(e)
-        if (namespace) {
-            await k8sService.Client.k8sCore.deleteNamespace({
-                name: req.namespace as string,
-            })
-        }
+        logger.log({
+            deploymentId: DbDeployment.id,
+            level: "ERROR",
+            message: "Unknown error occured",
+            source: "DEPLOYMENT",
+            timestamp: new Date()
+        })
+        await prisma.deployment.update({
+            where: {
+                id: DbDeployment.id
+            },
+            data: {
+                status: DeploymentStatus.failed
+            }
+        })
         return res.status(400).json({
             message: (e as any).message || "Unknown error occured"
         })
     }
+}
+
+
+
+export const getDeployments = async (req: Request, res: Response) => {
+    const apiId = req.params.apiId as string
+    const api = await prisma.api.findFirst({
+        where: {
+            id: parseInt(apiId)
+        }
+    })
+    if (!api) {
+        return res.status(400).json({
+            message: "Api not found"
+        })
+    }
+    const deployments = await prisma.deployment.findMany({
+        where: {
+            api_id: api.id
+        },
+        orderBy: {
+            initiated_at: "desc"
+        }
+    })
+    return res.json(deployments)
+}
+
+export const getDeploymentLogs = async (req: Request, res: Response) => {
+    const deploymentId = req.params.deploymentId as string
+    const deployment = await prisma.deployment.findFirst({
+        where: {
+            id: parseInt(deploymentId)
+        }
+    })
+    if (!deployment) {
+        return res.status(400).json({
+            message: "Deployment not found"
+        })
+    }
+    const logs = await prisma.deploymentLog.findMany({
+        where: {
+            deployment_id: deployment.id
+        }
+    })
+    return res.json(logs)
 }
