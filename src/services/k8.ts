@@ -67,7 +67,13 @@ export class K8sService {
             },
         })
     }
-
+    async updateConfigMap(namespace: string, name: string, data: any[]) {
+        return await this.Client.k8sCore.patchNamespacedConfigMap({
+            namespace: namespace,
+            name: name,
+            body: data
+        })
+    }
     async createSecret(namespace: string, name: string, stringData: Record<string, string>) {
         return await this.Client.k8sCore.createNamespacedSecret({
             namespace: namespace,
