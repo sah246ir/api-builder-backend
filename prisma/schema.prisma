@@ -190,12 +190,19 @@ model DeploymentLog {
 
   source LogSource
   created_at DateTime @default(now())
-
+  type LogType?
   deployment Deployment @relation(fields: [deployment_id], references: [id])
 
   @@index([deployment_id])
 }
 
+enum LogType {
+  success
+  error
+  warning
+  info
+  log
+}
 model Database {
   project_id String @id
   name       String

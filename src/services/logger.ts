@@ -9,6 +9,7 @@ export interface LogEvent {
     timestamp: Date;
     source?: string;
     metadata?: Record<string, any>;
+    type?: "success" | "error" | "warning" | "info" | "log";
 }
 export interface Logger {
     log(event: LogEvent): Promise<void>;
@@ -42,6 +43,7 @@ export class DBLogHandler implements LogHandler {
                 message: event.message,
                 source: event.source as LogSource,
                 created_at: event.timestamp,
+                type: event.type,
             },
         });
     }

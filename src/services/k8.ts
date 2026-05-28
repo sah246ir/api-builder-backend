@@ -1,4 +1,5 @@
 import * as kubeclient from '@kubernetes/client-node';
+import { k8S_DEPLOYMENT } from '../constants.js';
 export class K8sService {
     Client: {
         k8sClient: kubeclient.AppsV1Api
@@ -138,6 +139,43 @@ export class K8sService {
                     ]
                 }
             }
+        })
+    }
+
+    async createDeployment({
+        namespace,
+        name,
+        label,
+        secretRef,
+        volumeMounts,
+        volumes
+    }:{
+        namespace: string,
+        name: string,
+        label: string,
+        secretRef: string,
+        volumeMounts: {
+            mountPath: string,
+            name: string
+        }[],
+        volumes: {
+            configMap: {
+                name: string
+            },
+            name: string
+        }[]
+    }) {
+        return this.Client.k8sClient.createNamespacedDeployment({
+            namespace: namespace,
+            body: k8S_DEPLOYMENT({
+                namespace: namespace,
+                name: name,
+                label: label,
+                secretRef: secretRef,
+                env: [],
+                volumeMounts: volumeMounts,
+                volumes: volumes
+            })
         })
     }
 }

@@ -17,7 +17,7 @@ export const DeployApi = async (req: Request, res: Response) => {
             message: "Api not found"
         })
     }
-    const DbDeployment = await prisma.deployment.create({
+    const Deployment = await prisma.deployment.create({
         data: {
             api_id: parseInt(req.params.apiId as string),
             namespace: req.namespace as string,
@@ -27,22 +27,32 @@ export const DeployApi = async (req: Request, res: Response) => {
         }
     })
     logger.log({
-        deploymentId: DbDeployment.id,
+        deploymentId: Deployment.id,
         level: "INFO",
         message: "Deployment initiated",
         source: "DEPLOYMENT",
-        timestamp: new Date()
+        timestamp: new Date(),
+        type: "info"
     })
     logger.log({
-        deploymentId: DbDeployment.id,
+        deploymentId: Deployment.id,
         level: "INFO",
         message: "Getting your project's namespace",
         source: "DEPLOYMENT",
-        timestamp: new Date()
+        timestamp: new Date(),
+        type: "info"
     })
     let namespace = await k8sService.getNamespace(req.namespace as string)
     try {
         if (!namespace) {
+            logger.log({
+                deploymentId: Deployment.id,
+                level: "INFO",
+                message: "There was no namespace found for your project, creating one",
+                source: "DEPLOYMENT",
+                timestamp: new Date(),
+                type: "warning"
+            })
             namespace = await k8sService.Client.k8sCore.createNamespace({
                 body: {
                     metadata: {
@@ -51,156 +61,49 @@ export const DeployApi = async (req: Request, res: Response) => {
                 },
             })
             logger.log({
-                deploymentId: DbDeployment.id,
+                deploymentId: Deployment.id,
                 level: "INFO",
-                message: "There was no namespace found for your project, creating one",
+                message: `Namespace (${namespace.metadata?.name}) created for your project`,
                 source: "DEPLOYMENT",
-                timestamp: new Date()
+                timestamp: new Date(),
+                type: "info"
             })
         }else{
             logger.log({
-                deploymentId: DbDeployment.id,
+                deploymentId: Deployment.id,
                 level: "INFO",
                 message: `Namespace (${namespace.metadata?.name}) found for your project`,
                 source: "DEPLOYMENT",
-                timestamp: new Date()
+                timestamp: new Date(),
+                type: "success"
             })
         }
         const key = generateKey(req.projectId as string, apiSpec.name)
         const deployment = await k8sService.getDeployment(req.namespace as string, `deployment-${key}`)
         if (!deployment) {
-            const appLabel = apiSpec.name.toLowerCase().trim().replace(/ /g, '-')
-
-            logger.log({
-                deploymentId: DbDeployment.id,
-                level: "INFO",
-                message: `Getting your application's specifications`,
-                source: "DEPLOYMENT",
-                timestamp: new Date()
-            })
-            await k8sService.createConfigMap(
-                req.namespace as string,
-                `config-map-${key}`,
-                { "api.json": JSON.stringify(apiSpec) }
-            )
-
-            logger.log({
-                deploymentId: DbDeployment.id,
-                level: "INFO",
-                message: `Getting your database credentials`,
-                source: "DEPLOYMENT",
-                timestamp: new Date()
-            })
-            const dbSecrets = await prisma.secret.findFirst({
-                where: {
-                    project_id: req.projectId as string,
-                    key: "MONGO_URI"
+            await k8sService.DeployApi({
+                api: {
+                    id: parseInt(apiId),
+                    name: apiSpec.name
                 },
-                select: {
-                    value: true
-                }
-            })
-
-            logger.log({
-                deploymentId: DbDeployment.id,
-                level: "INFO",
-                message: `Configuring your deployment`,
-                source: "DEPLOYMENT",
-                timestamp: new Date()
-            })
-            await k8sService.createSecret(
-                req.namespace as string,
-                `secret-${key}`,
-                {
-                    PORT: "5000",
-                    SPEC_PATH: `/${apiSpec.id}/api.json`,
-                    MONGO_URI: dbSecrets?.value || ""
-                }
-            )
-
-            logger.log({
-                deploymentId: DbDeployment.id,
-                level: "INFO",
-                message: `Pushing your deployment to the cluster`,
-                source: "DEPLOYMENT",
-                timestamp: new Date()
-            })
-            await k8sService.Client.k8sClient.createNamespacedDeployment({
+                key: key,
                 namespace: req.namespace as string,
-                body: k8S_DEPLOYMENT({
-                    namespace: req.namespace as string,
-                    name: `deployment-${key}`,
-                    label: appLabel,
-                    secretRef: `secret-${key}`,
-                    env: [],
-                    volumeMounts: [
-                        {
-                            mountPath: `/${apiSpec.id}`,
-                            name: apiSpec.id.toString()
-                        }
-                    ],
-                    volumes: [
-                        {
-                            configMap: {
-                                name: `config-map-${key}`
-                            },
-                            name: apiSpec.id.toString()
-                        }
-                    ]
-                })
+                projectId: req.projectId as string
             })
-
-            logger.log({
-                deploymentId: DbDeployment.id,
-                level: "INFO",
-                message: `Exposing your api to the internet`,
-                source: "DEPLOYMENT",
-                timestamp: new Date()
-            })
-            await k8sService.createService(
-                req.namespace as string,
-                `service-${key}`,
-                { app: appLabel },
-                80,
-                5000
-            )
-
-            await k8sService.createIngress(
-                req.namespace as string,
-                `ingress-${key}`,
-                `${appLabel}.local`,
-                `service-${key}`,
-                80
-            )
         } else {
-            logger.log({
-                deploymentId: DbDeployment.id,
-                level: "INFO",
-                message: `Restarting your deployment`,
-                source: "DEPLOYMENT",
-                timestamp: new Date()
-            })
-            await k8sService.updateConfigMap(
-                req.namespace as string, 
-                `config-map-${key}`, 
-                [{ 
-                op: "add",
-                path: "/data/api.json",
-                value: JSON.stringify(apiSpec)
-             }]
-            )
-            await k8sService.restartDeployment(req.namespace as string, deployment.metadata?.name as string)
-            logger.log({
-                deploymentId: DbDeployment.id,
-                level: "INFO",
-                message: `Deployment restarted successfully.`,
-                source: "DEPLOYMENT",
-                timestamp: new Date()
+            await k8sService.RedeployApi({
+                deploymentId: Deployment.id,
+                namespace: req.namespace as string,
+                key: key,
+                api: {
+                    id: parseInt(apiId),
+                    name: apiSpec.name
+                }
             })
         }
         await prisma.deployment.update({
             where: {
-                id: DbDeployment.id
+                id: Deployment.id
             },
             data: {
                 status: DeploymentStatus.deployed,
@@ -213,15 +116,16 @@ export const DeployApi = async (req: Request, res: Response) => {
     } catch (e) { 
         console.log(e)
         logger.log({
-            deploymentId: DbDeployment.id,
+            deploymentId: Deployment.id,
             level: "ERROR",
             message: "Unknown error occured",
             source: "DEPLOYMENT",
-            timestamp: new Date()
+            timestamp: new Date(),  
+            type: "error"
         })
         await prisma.deployment.update({
             where: {
-                id: DbDeployment.id
+                id: Deployment.id
             },
             data: {
                 status: DeploymentStatus.failed
