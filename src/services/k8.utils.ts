@@ -141,9 +141,10 @@ export class K8sUtils extends K8sService {
         await this.createIngress(
             namespace as string,
             `ingress-${key}`,
-            `${appLabel}.local`,
+            `baas.local`,
             `service-${key}`,
-            80
+            80,
+            `/${apiSpec?.name.toLowerCase().trim().replace(/ /g, '-')}`
         )
     }
 
