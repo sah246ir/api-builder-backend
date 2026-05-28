@@ -7,11 +7,13 @@ export const ApiDeploymentHandler = async ({
     namespace,
     projectId,
     key,
+    deploymentId,
 }: {
     apiId: number,
     namespace: string,
     projectId: string,
     key: string,
+    deploymentId: number,
 }) => {
     const apiSpec = await prisma.api.findFirst({
         where: {
@@ -22,17 +24,8 @@ export const ApiDeploymentHandler = async ({
     if (!apiSpec) {
         throw new Error("Api not found")
     }
-    const Deployment = await prisma.deployment.create({
-        data: {
-            api_id: apiId,
-            namespace: namespace,
-            deployment_name: `deployment-${key}`,
-            status: DeploymentStatus.pending,
-            version: 1
-        }
-    })
     logger.log({
-        deploymentId: Deployment.id,
+        deploymentId: deploymentId,
         level: "INFO",
         message: "Deployment initiated",
         source: "DEPLOYMENT",
@@ -40,7 +33,7 @@ export const ApiDeploymentHandler = async ({
         type: "info"
     })
     logger.log({
-        deploymentId: Deployment.id,
+        deploymentId: deploymentId,
         level: "INFO",
         message: "Getting your project's namespace",
         source: "DEPLOYMENT",
@@ -51,7 +44,7 @@ export const ApiDeploymentHandler = async ({
     let kNamespace = await k8sService.getNamespace(namespace)
     if (!kNamespace) {
         logger.log({
-            deploymentId: Deployment.id,
+            deploymentId: deploymentId,
             level: "INFO",
             message: "There was no namespace found for your project, creating one",
             source: "DEPLOYMENT",
@@ -66,7 +59,7 @@ export const ApiDeploymentHandler = async ({
             },
         })
         logger.log({
-            deploymentId: Deployment.id,
+            deploymentId: deploymentId,
             level: "INFO",
             message: `Namespace (${kNamespace.metadata?.name}) created for your project`,
             source: "DEPLOYMENT",
@@ -75,7 +68,7 @@ export const ApiDeploymentHandler = async ({
         })
     } else {
         logger.log({
-            deploymentId: Deployment.id,
+            deploymentId: deploymentId,
             level: "INFO",
             message: `Namespace (${kNamespace.metadata?.name}) found for your project`,
             source: "DEPLOYMENT",
@@ -96,7 +89,7 @@ export const ApiDeploymentHandler = async ({
         })
     } else {
         await k8sService.RedeployApi({
-            deploymentId: Deployment.id,
+            deploymentId: deploymentId,
             namespace: namespace,
             key: key,
             api: {
@@ -107,7 +100,7 @@ export const ApiDeploymentHandler = async ({
     }
     await prisma.deployment.update({
         where: {
-            id: Deployment.id
+            id: deploymentId
         },
         data: {
             status: DeploymentStatus.deployed,
