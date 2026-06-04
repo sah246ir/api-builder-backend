@@ -19,8 +19,8 @@ model Admin {
   phone         String   @unique @db.VarChar(12)
   password      String   @db.VarChar(128)
   email         String   @unique @default("") @db.VarChar(128)
-  date_joined   DateTime @db.DateTime(6)
-  last_login    DateTime @db.DateTime(6)
+  date_joined   DateTime @db.DateTime(6) @default(now())
+  last_login    DateTime @db.DateTime(6) @default(now())
   is_subscribed Boolean
   tier          UserTier
 
@@ -178,7 +178,7 @@ model Deployment {
   completed_at DateTime?
   failure_reason String?
 
-  api Api @relation(fields: [api_id], references: [id])
+  api Api @relation(fields: [api_id], references: [id], onDelete: Cascade)
   DeploymentLog DeploymentLog[]
 }
 model DeploymentLog {
@@ -191,7 +191,7 @@ model DeploymentLog {
   source LogSource
   created_at DateTime @default(now())
   type LogType?
-  deployment Deployment @relation(fields: [deployment_id], references: [id])
+  deployment Deployment @relation(fields: [deployment_id], references: [id], onDelete: Cascade)
 
   @@index([deployment_id])
 }

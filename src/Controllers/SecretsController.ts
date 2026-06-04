@@ -74,6 +74,38 @@ export const GetSecret = async(req:Request,res:Response)=>{
     }
 }
 
+export const UpdateSecret = async(req:Request,res:Response)=>{
+    try{
+        const parsedData = SecretSchema.safeParse(req.body)
+        if(parsedData.error){
+            return res.status(400).json({
+                errors:parsedData.error
+            })
+        }
+
+        await prisma.secret.update({
+            where:{
+                id:parseInt(req.params.id),
+                project_id:req.projectId as string
+            },
+            data:{
+                key:parsedData.data.key,
+                type:parsedData.data.type,
+                value:parsedData.data.value,
+            }
+        })
+
+        return res.json({
+            message:"Secret updated"
+        })
+    }catch(e){
+        console.log(e)
+        return res.status(400).json({
+            message:"error"
+        })
+    }
+}
+
 export const DeleteSecret = async(req:Request,res:Response)=>{
     try{ 
         const data = await prisma.secret.delete({

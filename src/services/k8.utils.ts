@@ -137,14 +137,14 @@ export class K8sUtils extends K8sService {
             80,
             5000
         )
-
+        console.log(`ingress-${key}`)
         await this.createIngress(
             namespace as string,
             `ingress-${key}`,
             `baas.local`,
             `service-${key}`,
             80,
-            `/${apiSpec?.name.toLowerCase().trim().replace(/ /g, '-')}`
+            `/`
         )
     }
 
@@ -193,6 +193,19 @@ export class K8sUtils extends K8sService {
             source: "DEPLOYMENT",
             timestamp: new Date(),
             type: "success"
+        })
+    }
+
+    async DestroyApi({
+        namespace,
+        key,
+    }: {
+        namespace: string,
+        key: string,
+    }) {
+        await this.Client.k8sClient.deleteNamespacedDeployment({
+            name: `deployment-${key}`,
+            namespace: namespace
         })
     }
 }

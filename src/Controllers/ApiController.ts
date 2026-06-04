@@ -1,8 +1,9 @@
 import { Request, Response } from "express"
-import { prisma } from "../config/config.js"
+import { k8sService, prisma } from "../config/config.js"
 import { Prisma } from "@prisma/client"
 import { ApiTemplateSchema, CreateApiFromTemplateSchema } from "../Schema/ApiSchema.js"
 import { CollectionSchema } from "../Schema/DatabaseCollection.js"
+import { generateKey } from "../utils.js"
 
 export const GetApiTemplates = async(req:Request,res:Response)=>{
     try{ 
@@ -222,6 +223,10 @@ export const DeleteApi = async(req:Request,res:Response)=>{
                 id:parseInt(id),
                 project_id:req.projectId
             }
+        })
+        await k8sService.DestroyApi({
+            namespace: req.namespace as string,
+            key: generateKey(req.projectId as string, data.name)
         })
         return res.json({
             message:"Api deleted successfully"

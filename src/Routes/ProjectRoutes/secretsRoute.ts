@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { ProjectMiddleware } from "../../Middlewares/projectMiddleware.js";
-import { CreateSecret, GetSecret, GetSecrets } from "../../Controllers/SecretsController.js";
-import { DeleteCollection } from "../../Controllers/CollectionController.js";
+import { CreateSecret, DeleteSecret, GetSecret, GetSecrets, UpdateSecret } from "../../Controllers/SecretsController.js";
 
 
 
@@ -11,5 +10,6 @@ SecretsRouter.use(ProjectMiddleware)
 
 SecretsRouter.get("/",GetSecrets)
 SecretsRouter.get("/:id",GetSecret)
-SecretsRouter.delete("/:id",DeleteCollection)
+SecretsRouter.put("/:id",UpdateSecret)
+SecretsRouter.delete("/:id",DeleteSecret)
 SecretsRouter.post("/",CreateSecret)

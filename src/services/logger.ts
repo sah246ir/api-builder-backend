@@ -32,6 +32,11 @@ export class LogManager implements Logger {
     }
 }
 
+export class ConsoleLogHandler implements LogHandler {
+    async handle(event: LogEvent): Promise<void> {
+        console.log(JSON.stringify(event, null, 2));
+    }
+}
 export class DBLogHandler implements LogHandler {
     constructor(private prisma: PrismaClient) { }
 

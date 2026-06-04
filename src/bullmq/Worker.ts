@@ -9,6 +9,7 @@ interface JobData extends BaseJobData {
     namespace: string;
     projectId: string;
     key: string;
+    deploymentId: number;
 }
 export const Queueworker = new Worker('queue', 
     async (job:Job<JobData>) => {
@@ -19,7 +20,8 @@ export const Queueworker = new Worker('queue',
                     apiId: job.data.apiId,
                     namespace: job.data.namespace,
                     projectId: job.data.projectId,
-                    key: job.data.key
+                    key: job.data.key,
+                    deploymentId: job.data.deploymentId
                 });
                 break;
         }
