@@ -131,7 +131,7 @@ model Api {
   template String?
   endpoint   String
   name       String
-
+  api_url    String?
   Project Project @relation(fields: [project_id], references: [id])
   ApiTemplate ApiTemplate? @relation(fields: [template], references: [name])
 

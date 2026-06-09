@@ -115,7 +115,7 @@ export const CreateApiFromTemplate = async(req:Request,res:Response)=>{
             requestModels.forEach(mod=>{
                 Modelsmap[mod.name] = mod.id
             })
-            await tx.api.create({
+            const api = await tx.api.create({
                 data:{
                     endpoint:parsedData.data.endpoint,
                     name:parsedData.data.name,
@@ -146,6 +146,15 @@ export const CreateApiFromTemplate = async(req:Request,res:Response)=>{
                     }
                 }
             })
+            const apiUrl = `http://baas.local/${api.id}${api.endpoint}`
+            await tx.api.update({
+                where:{
+                    id:api.id
+                },
+                data:{
+                    api_url:apiUrl
+                }
+            })
         })
 
 
@@ -171,7 +180,7 @@ export const GetApis = async(req:Request,res:Response)=>{
             select:{
                 endpoint:true,
                 name:true,
-                template:true, id:true
+                template:true, id:true,api_url:true
             }
         }) 
         return res.json(data) 
