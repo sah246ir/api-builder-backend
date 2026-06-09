@@ -203,9 +203,9 @@ export class K8sUtils extends K8sService {
         namespace: string,
         key: string,
     }) {
-        await this.Client.k8sClient.deleteNamespacedDeployment({
-            name: `deployment-${key}`,
-            namespace: namespace
+        await this.Client.k8sCore.deleteNamespace({
+            name: namespace,
         })
+        
     }
 }
