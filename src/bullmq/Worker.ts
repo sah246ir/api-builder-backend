@@ -21,7 +21,6 @@ export const Queueworker = new Worker('queue',
                     namespace: job.data.namespace,
                     projectId: job.data.projectId,
                     key: job.data.key,
-                    deploymentId: job.data.deploymentId
                 });
                 break;
         }

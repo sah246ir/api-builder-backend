@@ -18,24 +18,13 @@ export const DeployApi = async (req: Request, res: Response) => {
             message: "Api not found"
         })
     }
-    const Deployment = await prisma.deployment.create({
-        data: {
-            api_id: parseInt(apiId),
-            namespace: req.namespace as string,
-            deployment_name: `deployment-${generateKey(req.projectId as string, apiSpec.name)}`,
-            status: DeploymentStatus.pending,
-            version: 1
-        }
-    })
     const job = await DeployApiJob({
-        deploymentId: Deployment.id,
         apiId: parseInt(apiId),
         namespace: req.namespace as string,
         projectId: req.projectId as string,
         key: generateKey(req.projectId as string, apiSpec.name)
     }) 
     return res.status(200).json({
-        deploymentId: Deployment.id,
         jobId: job?.id || "",
         status: DeploymentStatus.pending
     })

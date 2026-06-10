@@ -7,13 +7,11 @@ export const ApiDeploymentHandler = async ({
     namespace,
     projectId,
     key,
-    deploymentId,
 }: {
     apiId: number,
     namespace: string,
     projectId: string,
     key: string,
-    deploymentId: number,
 }) => {
     const apiSpec = await prisma.api.findFirst({
         where: {
@@ -39,7 +37,6 @@ export const ApiDeploymentHandler = async ({
         })
     }else{
         await k8sService.RedeployApi({
-            deploymentId: deploymentId,
             namespace: namespace,
             key: key,
             api: apiSpec

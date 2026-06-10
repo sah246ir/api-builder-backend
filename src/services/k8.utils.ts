@@ -42,7 +42,16 @@ export class K8sUtils extends K8sService {
             }
         })
         const appLabel = api.name.toLowerCase().trim().replace(/ /g, '-')
-
+        let knamespace = await this.getNamespace(namespace)
+        if (!knamespace) {
+            knamespace = await this.Client.k8sCore.createNamespace({
+                body: {
+                    metadata: {
+                        name: namespace,
+                    }
+                }
+            })
+        }
         this.logger.log({
             deploymentId: DbDeployment.id,
             level: "INFO",
@@ -146,15 +155,21 @@ export class K8sUtils extends K8sService {
             80,
             `/`
         )
+        await prisma.deployment.update({
+            where: {
+                id: DbDeployment.id,
+            },
+            data: {
+                status: DeploymentStatus.deployed,
+            }
+        })
     }
 
     async RedeployApi({
-        deploymentId,
         namespace,
         key,
         api,
     }: {
-        deploymentId: number,
         namespace: string,
         key: string,
         api: {
@@ -168,8 +183,17 @@ export class K8sUtils extends K8sService {
             },
             select: API_DEPLOYMENT_SPEC
         })
+        const DbDeployment = await prisma.deployment.create({
+            data: {
+                api_id: api.id,
+                namespace: namespace as string,
+                deployment_name: `deployment-${key}`,
+                status: DeploymentStatus.pending,
+                version: 1
+            }
+        })
         this.logger.log({
-            deploymentId: deploymentId,
+            deploymentId: DbDeployment.id,
             level: "INFO",
             message: `Restarting your deployment`,
             source: "DEPLOYMENT",
@@ -187,12 +211,20 @@ export class K8sUtils extends K8sService {
         )
         await this.restartDeployment(namespace as string, `deployment-${key}`)
         this.logger.log({
-            deploymentId: deploymentId,
+            deploymentId: DbDeployment.id,
             level: "INFO",
             message: `Deployment restarted successfully.`,
             source: "DEPLOYMENT",
             timestamp: new Date(),
             type: "success"
+        })
+        await prisma.deployment.update({
+            where: {
+                id: DbDeployment.id,
+            },
+            data: {
+                status: DeploymentStatus.deployed,
+            }
         })
     }
 
